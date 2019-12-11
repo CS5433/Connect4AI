@@ -9,8 +9,11 @@
     using std::string;
 #include <chrono>
 #include <thread>
+#include <ctime>
+#include <vector>
+    using std::vector;
     
-#include "functions.h"
+#include "AI.h"
 
 //colors
 //https://stackoverflow.com/questions/2616906/how-do-i-output-coloured-text-to-a-linux-terminal
@@ -21,6 +24,7 @@
 
 int main()
 {
+    srand(time(nullptr)); // setting up the srand for random number generation
     int column = -1;
 	bool move = false;
     string board[SIX][SEVEN]; // can store up to  6 * 7, or 42 element
@@ -28,79 +32,151 @@ int main()
     string garbage = "";
     char playAgain = 'n';
     create(board);
+    int players = 2; // player v player, or player v AI
+    int bCount = 4; // ai, offense
+    //int rCount = 4 // ai, defense
+    int bColumn;
     
     cout << "\n\nHere are the current \"RULES\""
          << "\n\t1. Once a column is full, you cannot choose it."
          << "\n\t2. If the board is full and no one has won, it is a stalemate.\n\n";
-    
-    do{
-        cout << "\nEnter any character and press enter to continue.  ";
-        cin >> garbage;
-        cout << endl;
-        display(board);
-        cout << "\nPlease enter a number between 1 to 7 (0 is end) to indicate column\n";
-    }while(garbage == "");
-    
-    do{
-        while((column != 0 && (column <= SEVEN || column >= 1)) && won == false)
-        {
-            if(won != true){
-        		do{
-        			move = false;
-                    cout << "\033[2;91mColumn(Red): \033[0m";
-                    if((cin >> column) && (column >= 1 && column <= 7)){
-                        move = addR(board, column-1);
-                    }
-                    cin.clear();
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                }while(move == false);
-        		
-        		display(board);
-                won = winCase(board);
-                if(won == true){
-                    cout << "\n\033[2;91mRed Won!\033[0m" << endl;
-                }
-                if(checkStaleMate(board)){
-                    cout << "\nYou have reached a stalemate" << endl;
-                    won = true;
-                }
-            }
-            if(won != true){
-        		do{
-                    move = false;
-        			cout << "\033[2;94mColumn(Blue): \033[0m";
-        			if((cin >> column) && (column >= 1 && column <= SEVEN)){
-                        move = addB(board, column-1);
-                    }
-                    cin.clear();
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        		}while(move == false);
-        		
-                display(board);
-                won = winCase(board);
-                if(won == true){
-                    cout << "\n\033[2;94mBlue Won!\033[0m" << endl;
-                }
-                if(checkStaleMate(board)){
-                    cout << "\nYou have reached a stalemate" << endl;
-                    won = true;
-                }
-            }
-        }
-        cout << "\nWould you like to play again? (y or n) ";
-        cin >> playAgain;
-        if(playAgain == 'y'){
-            won = false;
-            create(board);
-            cs();
-            cs2();
-            display(board);
-            cout << "\nPlease enter a number between 1 to 7 (0 is end) to indicate column\n\n";
-        }
-    }while(playAgain == 'y');
-    
+         
+
+    cout << "Do we have '1' or '2' players, please give a numeric answer: ";
+    cin >> players;
     cout << "\n\n";
+    
+    if(players == 2)
+    {
+        cout << "\nYou have chosen two players, good luck and have a freindly match!\n\n";
+        do{
+            cout << "\nEnter any character and press enter to continue.  ";
+            cin >> garbage;
+            cout << endl;
+            display(board);
+            cout << "\nPlease enter a number between 1 to 7 (0 is end) to indicate column\n";
+        }while(garbage == "");
+        
+        do{
+            while((column != 0 && (column <= 7 || column >= 1)) && won == false)
+            {
+                if(won != true){
+                    do{
+                        move = false;
+                        cout << "\033[2;91mColumn(Red): \033[0m";
+                        if((cin >> column) && (column >= 1 && column <= 7)){
+                            move = addR(board, column-1);
+                        }
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    }while(move == false);
+                    
+                    display(board);
+                    won = winCase(board);
+                    if(won == true){
+                        cout << "\n\033[2;91mRed Won!\033[0m" << endl;
+                    }
+                    if(checkStaleMate(board)){
+                        cout << "\nYou have reached a stalemate" << endl;
+                        won = true;
+                    }
+                }
+                if(won != true){
+                    do{
+                        move = false;
+                        cout << "\033[2;94mColumn(Blue): \033[0m";
+                        if((cin >> column) && (column >= 1 && column <= 7)){
+                            move = addB(board, column-1);
+                        }
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    }while(move == false);
+                    
+                    display(board);
+                    won = winCase(board);
+                    if(won == true){
+                        cout << "\n\033[2;94mBlue Won!\033[0m" << endl;
+                    }
+                    if(checkStaleMate(board)){
+                        cout << "\nYou have reached a stalemate" << endl;
+                        won = true;
+                    }
+                }
+            }
+            cout << "\nWould you like to play again? (y or n) ";
+            cin >> playAgain;
+            if(playAgain == 'y'){
+                won = false;
+                create(board);
+                cs();
+                cs2();
+                display(board);
+                cout << "\nPlease enter a number between 1 to 7 (0 is end) to indicate column\n\n";
+            }
+        }while(playAgain == 'y');
+    }
+    
+    cout << "\n";
+    
+    if(players == 1)
+    {
+        cout << "\nYou have chosen one player, good luck against your AI foe!\n\n";
+        display(board);
+        do{
+            while((column != 0 && (column <= 7 || column >= 1)) && won == false)
+            {
+                if(won != true){
+                    do{
+                        move = false;
+                        cout << "\033[2;91mColumn(Red): \033[0m";
+                        if((cin >> column) && (column >= 1 && column <= 7)){
+                            move = addR(board, column-1);
+                        }
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    }while(move == false);
+                    
+                    display(board);
+                    won = winCase(board);
+                    if(won == true){
+                        cout << "\n\033[2;91mRed Won!\033[0m" << endl;
+                    }
+                    if(checkStaleMate(board)){
+                        cout << "\nYou have reached a stalemate" << endl;
+                        won = true;
+                    }
+                }
+                if(won != true){
+                    do{
+                        move = false;
+                        move = hB(board, bCount, bColumn, column-1);
+                    }while(move == false);
+                    
+                    display(board);
+                    won = winCase(board);
+                    if(won == true){
+                        cout << "\n\033[2;94mBlue Won!\033[0m" << endl;
+                    }
+                    if(checkStaleMate(board)){
+                        cout << "\nYou have reached a stalemate" << endl;
+                        won = true;
+                    }
+                }
+            }
+            cout << "\nWould you like to play again? (y or n) ";
+            cin >> playAgain;
+            if(playAgain == 'y'){
+                won = false;
+                create(board);
+                cs();
+                cs2();
+                display(board);
+                bCount = 4;
+                optionsList.clear();
+                cout << "\nPlease enter a number between 1 to 7 (0 is end) to indicate column\n\n";
+            }
+        }while(playAgain == 'y');
+    }
 
     return 0;
-
 }
